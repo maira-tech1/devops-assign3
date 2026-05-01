@@ -20,6 +20,9 @@ pipeline {
 
         stage('Start Apps') {
             steps {
+                sh 'pkill -f "node server.js" || true'
+                sh 'pkill -f "vite" || true'
+                sh 'sleep 2'
                 sh 'cd backend && nohup node server.js > /tmp/backend.log 2>&1 &'
                 sh 'sleep 5'
                 sh 'cd frontend && nohup npm run dev -- --host 0.0.0.0 > /tmp/frontend.log 2>&1 &'
@@ -38,8 +41,6 @@ pipeline {
 
     post {
         always {
-            sh 'pkill -f "node server.js" || true'
-            sh 'pkill -f "vite" || true'
             emailext(
                 to: 'mairamalyk13@gmail.com',
                 subject: "Jenkins Build - ${env.JOB_NAME} - ${currentBuild.currentResult}",
@@ -48,6 +49,7 @@ pipeline {
                     <p><b>Status:</b> ${currentBuild.currentResult}</p>
                     <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
                     <p><b>Triggered by GitHub push</b></p>
+                    <p><b>Live URL:</b> <a href="http://43.205.238.40:5173">http://43.205.238.40:5173</a></p>
                     <p><b>Logs:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """,
                 mimeType: 'text/html'
