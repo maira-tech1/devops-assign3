@@ -1,20 +1,20 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'Node20'
+    }
+
     stages {
         stage('Install Backend') {
             steps {
-                nodejs(nodeJSInstallationName: 'Node20') {
-                    sh 'cd backend && npm install'
-                }
+                sh 'cd backend && npm install'
             }
         }
 
         stage('Install Frontend') {
             steps {
-                nodejs(nodeJSInstallationName: 'Node20') {
-                    sh 'cd frontend && npm install'
-                }
+                sh 'cd frontend && npm install'
             }
         }
 
