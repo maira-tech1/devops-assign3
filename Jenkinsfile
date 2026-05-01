@@ -18,6 +18,15 @@ pipeline {
             }
         }
 
+        stage('Start Apps') {
+            steps {
+                sh 'cd backend && nohup node server.js > /tmp/backend.log 2>&1 &'
+                sh 'sleep 5'
+                sh 'cd frontend && nohup npm run dev -- --host 0.0.0.0 > /tmp/frontend.log 2>&1 &'
+                sh 'sleep 15'
+            }
+        }
+
         stage('Run Selenium Tests') {
             steps {
                 sh 'cd selenium-tests && npm install selenium-webdriver && node e2e.js'
@@ -27,17 +36,17 @@ pipeline {
 
     post {
         always {
+            sh 'pkill -f "node server.js" || true'
+            sh 'pkill -f "vite" || true'
             emailext(
-                to: 'qasimalik@gmail.com',
-                subject: "Jenkins Pipeline - ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
+                to: 'mairamalyk13@gmail.com',
+                subject: "Jenkins Build - ${env.JOB_NAME} - ${currentBuild.currentResult}",
                 body: """
                     <h2>Jenkins Pipeline Result</h2>
-                    <p><b>Project:</b> ${env.JOB_NAME}</p>
-                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
                     <p><b>Status:</b> ${currentBuild.currentResult}</p>
-                    <p><b>Triggered by:</b> ${env.GIT_COMMITTER_NAME ?: 'Unknown'}</p>
-                    <p><b>Commit:</b> ${env.GIT_COMMIT}</p>
-                    <p>Check full logs at: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    <p><b>Build:</b> ${env.BUILD_NUMBER}</p>
+                    <p><b>Triggered by:</b> GitHub push by maira-tech1</p>
+                    <p><b>Logs:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """,
                 mimeType: 'text/html'
             )
