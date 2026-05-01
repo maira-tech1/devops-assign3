@@ -4,13 +4,13 @@ pipeline {
     stages {
         stage('Install Backend') {
             steps {
-                sh 'docker run --rm -v /var/lib/docker/volumes/jenkins_home/_data/workspace/devops-assign3:/app -w /app/backend node:18 npm install'
+                sh 'docker run --rm -v /var/lib/docker/volumes/jenkins_home/_data/workspace/devops-assign3:/app -w /app/backend node:20 npm install'
             }
         }
 
         stage('Install Frontend') {
             steps {
-                sh 'docker run --rm -v /var/lib/docker/volumes/jenkins_home/_data/workspace/devops-assign3:/app -w /app/frontend node:18 npm install'
+                sh 'docker run --rm -v /var/lib/docker/volumes/jenkins_home/_data/workspace/devops-assign3:/app -w /app/frontend node:20 npm install'
             }
         }
 
