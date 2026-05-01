@@ -5,19 +5,25 @@ pipeline {
 
         stage('Install Backend') {
             steps {
-                sh 'cd backend && npm install'
+                sh '''
+                docker run --rm -v $(pwd):/app -w /app/backend node:18 npm install
+                '''
             }
         }
 
         stage('Install Frontend') {
             steps {
-                sh 'cd frontend && npm install'
+                sh '''
+                docker run --rm -v $(pwd):/app -w /app/frontend node:18 npm install
+                '''
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'cd tests && python3 test_login.py'
+                sh '''
+                docker run --rm -v $(pwd):/app -w /app/tests python:3.10 bash -c "pip install selenium && python test_login.py"
+                '''
             }
         }
     }
