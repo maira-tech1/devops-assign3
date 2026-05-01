@@ -29,7 +29,9 @@ pipeline {
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'cd selenium-tests && npm install selenium-webdriver && node e2e.js'
+                sh 'rm -rf devops-assign3-tests'
+                sh 'git clone https://github.com/maira-tech1/devops-assign3-tests'
+                sh 'cd devops-assign3-tests && npm install selenium-webdriver && node e2e.js'
             }
         }
     }
@@ -44,8 +46,8 @@ pipeline {
                 body: """
                     <h2>Jenkins Pipeline Result</h2>
                     <p><b>Status:</b> ${currentBuild.currentResult}</p>
-                    <p><b>Build:</b> ${env.BUILD_NUMBER}</p>
-                    <p><b>Triggered by:</b> GitHub push by maira-tech1</p>
+                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                    <p><b>Triggered by GitHub push</b></p>
                     <p><b>Logs:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """,
                 mimeType: 'text/html'
