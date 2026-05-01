@@ -20,7 +20,7 @@ pipeline {
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'cd selenium-tests && pip install selenium && python test_login.py'
+                sh 'cd selenium-tests && pip install selenium --break-system-packages && python3 test_login.py'
             }
         }
     }
