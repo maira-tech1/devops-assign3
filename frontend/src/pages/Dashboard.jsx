@@ -42,14 +42,14 @@ export default function Dashboard() {
   };
 
   const fetchTasks = async () => {
-    const res = await axios.get("http://localhost:3000/api/tasks", {
+    const res = await axios.get("http://43.205.238.40:3000/api/tasks", {
       headers: { Authorization: token },
     });
     setTasks(res.data);
   };
 
   const fetchStats = async () => {
-    const res = await axios.get("http://localhost:3000/api/tasks/stats", {
+    const res = await axios.get("http://43.205.238.40:3000/api/tasks/stats", {
       headers: { Authorization: token },
     });
     setStats(res.data);
@@ -59,7 +59,7 @@ export default function Dashboard() {
     if (!title) return alert("Enter task title");
 
     await axios.post(
-      "http://localhost:3000/api/tasks",
+      "http://43.205.238.40:3000/api/tasks",
       { title, deadline },
       { headers: { Authorization: token } }
     );
@@ -72,7 +72,7 @@ export default function Dashboard() {
 
   const completeTask = async (id) => {
     await axios.patch(
-      `http://localhost:3000/api/tasks/${id}/complete`,
+      `http://43.205.238.40:3000/api/tasks/${id}/complete`,
       {},
       { headers: { Authorization: token } }
     );
@@ -92,7 +92,7 @@ export default function Dashboard() {
   };
 
   const deleteTask = async (id) => {
-    await axios.delete(`http://localhost:3000/api/tasks/${id}`, {
+    await axios.delete(`http://43.205.238.40:3000/api/tasks/${id}`, {
       headers: { Authorization: token },
     });
     fetchTasks();
@@ -107,7 +107,7 @@ export default function Dashboard() {
 
   const saveEdit = async (id) => {
     await axios.put(
-      `http://localhost:3000/api/tasks/${id}/edit`,
+      `http://43.205.238.40:3000/api/tasks/${id}/edit`,
       { title: editTitle, deadline: editDeadline },
       { headers: { Authorization: token } }
     );
