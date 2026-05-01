@@ -6,17 +6,19 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function runTests() {
     let options = new chrome.Options();
-    // Required for Jenkins running inside a container
     options.addArguments('--headless');
     options.addArguments('--no-sandbox');
     options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--disable-gpu');
+    options.addArguments('--window-size=1920,1080');
+    options.setChromeBinaryPath('/usr/bin/chromium');
 
     let driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(options)
         .build();
 
-    const baseUrl = 'http://localhost:5173'; // Assuming Vite dev server or similar
+    const baseUrl = 'http://localhost:5173';
     let passed = 0;
     let failed = 0;
 
@@ -33,10 +35,6 @@ async function runTests() {
     try {
         console.log("Starting Selenium Test Suite...");
 
-        /** 
-         * MODULE 1: AUTHENTICATION (Login / Registration)
-         */
-
         // Test 1: Load Login Page
         await driver.get(`${baseUrl}/`);
         let titleText = await driver.findElement(By.tagName('h2')).getText();
@@ -47,7 +45,6 @@ async function runTests() {
         await driver.findElement(By.id('password')).sendKeys('wrongpassword');
         await driver.findElement(By.id('loginBtn')).click();
         await sleep(1000);
-        // Assuming there's an alert or it just stays on the login page
         let currentUrl = await driver.getCurrentUrl();
         logTest("Test 2: Rejects invalid credentials and stays on login", !currentUrl.includes('/dashboard'));
 
@@ -61,7 +58,7 @@ async function runTests() {
         await driver.findElement(By.id('signupEmail')).sendKeys(testUser);
         await driver.findElement(By.id('signupPassword')).sendKeys('securepass123');
         await driver.findElement(By.id('signupBtn')).click();
-        await sleep(1500); // handle alert & redirect
+        await sleep(1500);
         try {
            await driver.switchTo().alert().accept(); 
         } catch(e) {}
@@ -78,46 +75,37 @@ async function runTests() {
         currentUrl = await driver.getCurrentUrl();
         logTest("Test 5: Login successful and redirected to dashboard", currentUrl.includes('/dashboard'));
 
-        /** 
-         * MODULE 2: DASHBOARD & ERP MODULES RENDER
-         */
-
         // Test 6: Verify ERP Name in Dashboard Navigation
         let navText = await driver.findElement(By.tagName('nav')).getText();
         logTest("Test 6: Dashboard displays correct ERP Name", navText.includes('Nexus ERP System'));
 
-        // Test 7: Verify 'Task Management' Sidebar Module exists
+        // Test 7: Verify Task Management Sidebar Module exists
         let sidebarText = await driver.findElement(By.className('w-1/4')).getText();
         logTest("Test 7: Sidebar shows 'Task Management' Module", sidebarText.includes('Task Management'));
 
-        // Test 8: Verify 'Employee Directory' Sidebar Module exists
+        // Test 8: Verify Employee Directory Sidebar Module exists
         logTest("Test 8: Sidebar shows 'Employee Directory' Module", sidebarText.includes('Employee Directory'));
 
-        // Test 9: Verify 'Inventory Control' Sidebar Module exists
+        // Test 9: Verify Inventory Control Sidebar Module exists
         logTest("Test 9: Sidebar shows 'Inventory Control' Module", sidebarText.includes('Inventory Control'));
 
-        // Test 10: Verify 'Client Projects' Sidebar Module exists
+        // Test 10: Verify Client Projects Sidebar Module exists
         logTest("Test 10: Sidebar shows 'Client Projects' Module", sidebarText.includes('Client Projects'));
-
-        /**
-         * MODULE 3: TASK CRUD OPERATIONS
-         */
 
         // Test 11: Add a new task
         const taskTitle = `Auto Task ${Date.now()}`;
         await driver.findElement(By.id('taskTitle')).sendKeys(taskTitle);
         await driver.findElement(By.id('taskDeadline')).sendKeys('12-31-2030');
         await driver.findElement(By.id('addTaskBtn')).click();
-        await sleep(1500); // wait for API
+        await sleep(1500);
         let bodyText = await driver.findElement(By.tagName('body')).getText();
         logTest("Test 11: Add new Task successfully", bodyText.includes(taskTitle));
 
         // Test 12: Verify total stats updated
         let statsText = await driver.findElement(By.css('.grid-cols-1.md\\:grid-cols-3')).getText();
-        logTest("Test 12: Task stats counter updated", statsText.includes('Total Tasks')); 
+        logTest("Test 12: Task stats counter updated", statsText.includes('Total Tasks'));
 
         // Test 13: Edit Task
-        // Click first edit button found
         await driver.findElement(By.id('editBtn')).click();
         await sleep(500);
         await driver.findElement(By.id('editTitle')).clear();
@@ -132,17 +120,13 @@ async function runTests() {
         await driver.findElement(By.id('completeBtn')).click();
         await sleep(1000);
         bodyText = await driver.findElement(By.tagName('body')).getText();
-        logTest("Test 14: Mark Task as completed and disappear from active UI", !bodyText.includes(updatedTaskTitle));
-
-        /** 
-         * MODULE 4: SESSION MANAGEMENT
-         */
+        logTest("Test 14: Mark Task as completed", !bodyText.includes(updatedTaskTitle));
 
         // Test 15: Logout
         await driver.findElement(By.xpath("//button[contains(text(), 'Logout')]")).click();
         await sleep(1000);
         currentUrl = await driver.getCurrentUrl();
-        logTest("Test 15: Logout redirects back to login page safely", currentUrl.endsWith('/'));
+        logTest("Test 15: Logout redirects back to login page", currentUrl.endsWith('/'));
 
     } catch (error) {
         console.error("Test execution failed:", error);
@@ -151,7 +135,7 @@ async function runTests() {
         console.log(`\n============================`);
         console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
         console.log(`============================\n`);
-        
+
         if (failed > 0) {
             process.exit(1);
         } else {
