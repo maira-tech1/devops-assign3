@@ -10,7 +10,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/login", {
+      const res = await axios.post("http://43.205.238.40:3000/api/auth/login", {
         email,
         password,
       });
