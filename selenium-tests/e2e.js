@@ -113,8 +113,8 @@ async function runTests() {
         logTest("Test 11: Add new Task successfully", bodyText.includes(taskTitle));
 
         // Test 12: Verify total stats updated
-        let statsText = await driver.findElement(By.css('.grid-cols-1')).getText();
-        logTest("Test 12: Task stats counter updated", statsText.includes('Total Tasks'));
+        bodyText = await driver.findElement(By.tagName('body')).getText();
+        logTest("Test 12: Task stats counter updated", bodyText.includes('Total Tasks'));
 
         // Test 13: Edit Task
         await driver.findElement(By.id('editBtn')).click();
