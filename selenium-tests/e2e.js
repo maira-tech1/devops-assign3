@@ -55,7 +55,11 @@ async function runTests() {
         logTest("Test 2: Rejects invalid credentials and stays on login", !currentUrl.includes('/dashboard'));
 
         // Test 3: Navigate to Signup Page
+        // Test 3: Navigate to Signup Page
+        await dismissAlert(driver);
+        await sleep(500);
         await driver.get(`${baseUrl}/signup`);
+        await sleep(1000);
         titleText = await driver.findElement(By.tagName('h2')).getText();
         logTest("Test 3: Signup page loads", titleText.includes('Registration'));
 
