@@ -1,0 +1,12 @@
+{
+  "name": "nexus-erp-tests",
+  "version": "1.0.0",
+  "description": "Selenium Test Suite for Nexus ERP (Assignment)",
+  "main": "e2e.js",
+  "scripts": {
+    "test": "node e2e.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.15.0"
+  }
+}

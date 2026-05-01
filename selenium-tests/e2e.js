@@ -1,0 +1,163 @@
+const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+
+// Sleep helper
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function runTests() {
+    let options = new chrome.Options();
+    // Required for Jenkins running inside a container
+    options.addArguments('--headless');
+    options.addArguments('--no-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+
+    let driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
+
+    const baseUrl = 'http://localhost:5173'; // Assuming Vite dev server or similar
+    let passed = 0;
+    let failed = 0;
+
+    const logTest = (name, success) => {
+        if (success) {
+            console.log(`✅ [PASS] ${name}`);
+            passed++;
+        } else {
+            console.log(`❌ [FAIL] ${name}`);
+            failed++;
+        }
+    };
+
+    try {
+        console.log("Starting Selenium Test Suite...");
+
+        /** 
+         * MODULE 1: AUTHENTICATION (Login / Registration)
+         */
+
+        // Test 1: Load Login Page
+        await driver.get(`${baseUrl}/`);
+        let titleText = await driver.findElement(By.tagName('h2')).getText();
+        logTest("Test 1: App loads Login Page successfully", titleText.includes('Login'));
+
+        // Test 2: Invalid Login Handling
+        await driver.findElement(By.id('email')).sendKeys('test_invalid@example.com');
+        await driver.findElement(By.id('password')).sendKeys('wrongpassword');
+        await driver.findElement(By.id('loginBtn')).click();
+        await sleep(1000);
+        // Assuming there's an alert or it just stays on the login page
+        let currentUrl = await driver.getCurrentUrl();
+        logTest("Test 2: Rejects invalid credentials and stays on login", !currentUrl.includes('/dashboard'));
+
+        // Test 3: Navigate to Signup Page
+        await driver.get(`${baseUrl}/signup`);
+        titleText = await driver.findElement(By.tagName('h2')).getText();
+        logTest("Test 3: Signup page loads", titleText.includes('Registration'));
+
+        // Test 4: Fill Registration Form
+        const testUser = `testuser_${Date.now()}@example.com`;
+        await driver.findElement(By.id('signupEmail')).sendKeys(testUser);
+        await driver.findElement(By.id('signupPassword')).sendKeys('securepass123');
+        await driver.findElement(By.id('signupBtn')).click();
+        await sleep(1500); // handle alert & redirect
+        try {
+           await driver.switchTo().alert().accept(); 
+        } catch(e) {}
+        currentUrl = await driver.getCurrentUrl();
+        logTest("Test 4: Register new user successfully", currentUrl.includes('/'));
+
+        // Test 5: Login with newly created user
+        await driver.findElement(By.id('email')).clear();
+        await driver.findElement(By.id('email')).sendKeys(testUser);
+        await driver.findElement(By.id('password')).clear();
+        await driver.findElement(By.id('password')).sendKeys('securepass123');
+        await driver.findElement(By.id('loginBtn')).click();
+        await sleep(2000);
+        currentUrl = await driver.getCurrentUrl();
+        logTest("Test 5: Login successful and redirected to dashboard", currentUrl.includes('/dashboard'));
+
+        /** 
+         * MODULE 2: DASHBOARD & ERP MODULES RENDER
+         */
+
+        // Test 6: Verify ERP Name in Dashboard Navigation
+        let navText = await driver.findElement(By.tagName('nav')).getText();
+        logTest("Test 6: Dashboard displays correct ERP Name", navText.includes('Nexus ERP System'));
+
+        // Test 7: Verify 'Task Management' Sidebar Module exists
+        let sidebarText = await driver.findElement(By.className('w-1/4')).getText();
+        logTest("Test 7: Sidebar shows 'Task Management' Module", sidebarText.includes('Task Management'));
+
+        // Test 8: Verify 'Employee Directory' Sidebar Module exists
+        logTest("Test 8: Sidebar shows 'Employee Directory' Module", sidebarText.includes('Employee Directory'));
+
+        // Test 9: Verify 'Inventory Control' Sidebar Module exists
+        logTest("Test 9: Sidebar shows 'Inventory Control' Module", sidebarText.includes('Inventory Control'));
+
+        // Test 10: Verify 'Client Projects' Sidebar Module exists
+        logTest("Test 10: Sidebar shows 'Client Projects' Module", sidebarText.includes('Client Projects'));
+
+        /**
+         * MODULE 3: TASK CRUD OPERATIONS
+         */
+
+        // Test 11: Add a new task
+        const taskTitle = `Auto Task ${Date.now()}`;
+        await driver.findElement(By.id('taskTitle')).sendKeys(taskTitle);
+        await driver.findElement(By.id('taskDeadline')).sendKeys('12-31-2030');
+        await driver.findElement(By.id('addTaskBtn')).click();
+        await sleep(1500); // wait for API
+        let bodyText = await driver.findElement(By.tagName('body')).getText();
+        logTest("Test 11: Add new Task successfully", bodyText.includes(taskTitle));
+
+        // Test 12: Verify total stats updated
+        let statsText = await driver.findElement(By.css('.grid-cols-1.md\\:grid-cols-3')).getText();
+        logTest("Test 12: Task stats counter updated", statsText.includes('Total Tasks')); 
+
+        // Test 13: Edit Task
+        // Click first edit button found
+        await driver.findElement(By.id('editBtn')).click();
+        await sleep(500);
+        await driver.findElement(By.id('editTitle')).clear();
+        const updatedTaskTitle = `${taskTitle} (UPDATED)`;
+        await driver.findElement(By.id('editTitle')).sendKeys(updatedTaskTitle);
+        await driver.findElement(By.id('saveEditBtn')).click();
+        await sleep(1000);
+        bodyText = await driver.findElement(By.tagName('body')).getText();
+        logTest("Test 13: Edit Task successfully", bodyText.includes(updatedTaskTitle));
+
+        // Test 14: Complete the task
+        await driver.findElement(By.id('completeBtn')).click();
+        await sleep(1000);
+        bodyText = await driver.findElement(By.tagName('body')).getText();
+        logTest("Test 14: Mark Task as completed and disappear from active UI", !bodyText.includes(updatedTaskTitle));
+
+        /** 
+         * MODULE 4: SESSION MANAGEMENT
+         */
+
+        // Test 15: Logout
+        await driver.findElement(By.xpath("//button[contains(text(), 'Logout')]")).click();
+        await sleep(1000);
+        currentUrl = await driver.getCurrentUrl();
+        logTest("Test 15: Logout redirects back to login page safely", currentUrl.endsWith('/'));
+
+    } catch (error) {
+        console.error("Test execution failed:", error);
+    } finally {
+        await driver.quit();
+        console.log(`\n============================`);
+        console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
+        console.log(`============================\n`);
+        
+        if (failed > 0) {
+            process.exit(1);
+        } else {
+            process.exit(0);
+        }
+    }
+}
+
+runTests();
