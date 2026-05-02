@@ -42,12 +42,11 @@ pipeline {
     post {
         always {
             emailext(
-                to: 'mairamalyk13@gmail.com',
+                to: "${env.GIT_AUTHOR_EMAIL}",
                 subject: "Jenkins Build - ${env.JOB_NAME} - ${currentBuild.currentResult}",
                 body: """
                     <h2>Jenkins Pipeline Result</h2>
                     <p><b>Status:</b> ${currentBuild.currentResult}</p>
-                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
                     <p><b>Triggered by GitHub push</b></p>
                     <p><b>Live URL:</b> <a href="http://43.205.238.40:5173">http://43.205.238.40:5173</a></p>
                     <p><b>Logs:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
