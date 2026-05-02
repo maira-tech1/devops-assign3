@@ -24,15 +24,15 @@ pipeline {
 
         stage('Start Apps') {
             steps {
-                sh 'docker exec -u root jenkins bash -c "pkill -f \\"node server.js\\" || true"'
-                sh 'docker exec -u root jenkins bash -c "pkill -f vite || true"'
+                sh 'pkill -f "node server.js" || true'
+                sh 'pkill -f "vite" || true'
                 sh 'sleep 2'
                 sh 'docker exec -d jenkins bash -c "export PATH=\\$PATH:/var/jenkins_home/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/Node20/bin && cd /var/jenkins_home/workspace/devops-assign3/backend && node server.js > /var/jenkins_home/backend.log 2>&1"'
                 sh 'sleep 5'
                 sh 'docker exec -d jenkins bash -c "export PATH=\\$PATH:/var/jenkins_home/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/Node20/bin && cd /var/jenkins_home/workspace/devops-assign3/frontend && npm run dev -- --host 0.0.0.0 > /var/jenkins_home/frontend.log 2>&1"'
                 sh 'sleep 20'
             }
-        }
+        }  
 
         stage('Run Selenium Tests') {
             steps {
