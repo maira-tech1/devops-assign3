@@ -27,9 +27,9 @@ pipeline {
                 sh 'pkill -f "node server.js" || true'
                 sh 'pkill -f "vite" || true'
                 sh 'sleep 2'
-                sh 'setsid nohup node backend/server.js > /var/jenkins_home/backend.log 2>&1 < /dev/null &'
+                sh 'echo "node /var/jenkins_home/workspace/devops-assign3/backend/server.js > /var/jenkins_home/backend.log 2>&1" | at now'
                 sh 'sleep 5'
-                sh 'setsid nohup npm run dev --prefix frontend -- --host 0.0.0.0 > /var/jenkins_home/frontend.log 2>&1 < /dev/null &'
+                sh 'echo "PATH=$PATH:/var/jenkins_home/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/Node20/bin && cd /var/jenkins_home/workspace/devops-assign3/frontend && npm run dev -- --host 0.0.0.0 > /var/jenkins_home/frontend.log 2>&1" | at now'
                 sh 'sleep 15'
             }
         }
