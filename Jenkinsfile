@@ -5,6 +5,10 @@ pipeline {
         nodejs 'Node20'
     }
 
+    environment {
+        PUSHER_EMAIL = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
+    }
+
     stages {
         stage('Install Backend') {
             steps {
@@ -23,6 +27,7 @@ pipeline {
                 sh 'pkill -f "node server.js" || true'
                 sh 'pkill -f "vite" || true'
                 sh 'sleep 2'
+                sh 'chmod 777 /tmp'
                 sh 'cd backend && nohup node server.js > /tmp/backend.log 2>&1 &'
                 sh 'sleep 5'
                 sh 'cd frontend && nohup npm run dev -- --host 0.0.0.0 > /tmp/frontend.log 2>&1 &'
@@ -42,12 +47,12 @@ pipeline {
     post {
         always {
             emailext(
-                to: "${env.GIT_AUTHOR_EMAIL}",
+                to: "${env.PUSHER_EMAIL}",
                 subject: "Jenkins Build - ${env.JOB_NAME} - ${currentBuild.currentResult}",
                 body: """
                     <h2>Jenkins Pipeline Result</h2>
                     <p><b>Status:</b> ${currentBuild.currentResult}</p>
-                    <p><b>Triggered by GitHub push</b></p>
+                    <p><b>Triggered by:</b> ${env.PUSHER_EMAIL}</p>
                     <p><b>Live URL:</b> <a href="http://43.205.238.40:5173">http://43.205.238.40:5173</a></p>
                     <p><b>Logs:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
                 """,
