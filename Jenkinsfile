@@ -27,9 +27,9 @@ pipeline {
                 sh 'pkill -f "node server.js" || true'
                 sh 'pkill -f "vite" || true'
                 sh 'sleep 2'
-                sh 'cd backend && nohup node server.js > /tmp/backend.log 2>&1 &'
+                sh 'cd backend && nohup node server.js > /var/jenkins_home/backend.log 2>&1 &'
                 sh 'sleep 5'
-                sh 'cd frontend && nohup npm run dev -- --host 0.0.0.0 > /tmp/frontend.log 2>&1 &'
+                sh 'cd frontend && nohup npm run dev -- --host 0.0.0.0 > /var/jenkins_home/frontend.log 2>&1 &'
                 sh 'sleep 15'
             }
         }
